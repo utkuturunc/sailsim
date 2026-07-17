@@ -6,12 +6,12 @@ const dist = `${root}/dist`;
 await rm(dist, { recursive:true, force:true });
 
 const result = await Bun.build({
-  entrypoints:[`${root}/app.ts`],
+  entrypoints:[`${root}/app.ts`, `${root}/anchor.ts`],
   outdir:dist,
   target:'browser',
   format:'esm',
   minify:true,
-  naming:'app.js'
+  naming:'[name].js'
 });
 
 if (!result.success) {
@@ -19,13 +19,16 @@ if (!result.success) {
   throw new Error('Browser bundle failed.');
 }
 
-const sourceHtml = await Bun.file(`${root}/index.html`).text();
-const outputHtml = sourceHtml.replace(
-  '<script type="module" src="./app.ts"></script>',
-  '<script type="module" src="./app.js"></script>'
-);
+await Bun.write(`${dist}/index.html`, Bun.file(`${root}/index.html`));
 
-if (outputHtml === sourceHtml) throw new Error('Could not locate the TypeScript entry script in index.html.');
-
-await Bun.write(`${dist}/index.html`, outputHtml);
-console.log('Built dist/index.html and dist/app.js');
+for (const page of ['forces', 'anchor']) {
+  const sourceHtml = await Bun.file(`${root}/${page}.html`).text();
+  const entry = page === 'forces' ? 'app' : 'anchor';
+  const outputHtml = sourceHtml.replace(
+    `<script type="module" src="./${entry}.ts"></script>`,
+    `<script type="module" src="./${entry}.js"></script>`
+  );
+  if (outputHtml === sourceHtml) throw new Error(`Could not locate the TypeScript entry script in ${page}.html.`);
+  await Bun.write(`${dist}/${page}.html`, outputHtml);
+}
+console.log('Built landing, force, and anchor-chain pages in dist/');
