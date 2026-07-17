@@ -1,0 +1,13 @@
+{
+  "name": "sailboat-force-lab",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.3.14",
+  "scripts": {
+    "build": "bun build.ts",
+    "dev": "bun run build && bun --watch server.ts",
+    "start": "bun run build && bun server.ts",
+    "test": "bun test"
+  }
+}
