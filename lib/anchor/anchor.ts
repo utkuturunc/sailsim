@@ -402,14 +402,15 @@ function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
     const { onSeabed, touchdownDepth } = geometry;
     const horizontalSuspendedM = geometry.horizontalSuspended;
     const laidHorizontalM = geometry.laidHorizontal;
+    const cameraGeometry = solveAnchorGeometry(displayDepth, displayChain, 40, displaySlope);
 
     const baseBoatScale = Math.max(0.72, Math.min(1.05, w / 900));
     const baseAnchorScale = baseBoatScale * 0.68;
     const baseWorldPxPerM = 18;
     const sceneWidth =
-      geometry.totalHorizontal * baseWorldPxPerM + 150 * baseBoatScale + 70 * baseAnchorScale;
+      cameraGeometry.totalHorizontal * baseWorldPxPerM + 150 * baseBoatScale + 70 * baseAnchorScale;
     const sceneHeight =
-      geometry.anchorDepth * baseWorldPxPerM + 130 * baseBoatScale + 50 * baseAnchorScale;
+      cameraGeometry.anchorDepth * baseWorldPxPerM + 130 * baseBoatScale + 50 * baseAnchorScale;
     const sceneTop = 68;
     const sceneZoom = Math.max(
       0.14,
