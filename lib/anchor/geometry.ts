@@ -2,6 +2,9 @@ export type AnchorGeometry = {
   chainLength: number;
   suspendedLength: number;
   onSeabed: number;
+  laidOnSeabed: number;
+  piledOnSeabed: number;
+  bowDepth: number;
   touchdownDepth: number;
   horizontalSuspended: number;
   catenaryA: number;
@@ -44,26 +47,70 @@ function solveTangentCatenary(arcLength: number, bowDepth: number, slope: number
 }
 
 export function solveAnchorGeometry(
-  depth: number,
+  dropDepth: number,
   chainLengthInput: number,
   windStrength: number,
   slope: number
 ): AnchorGeometry {
-  const chainLength = Math.max(chainLengthInput, depth + 0.01);
+  const chainLength = Math.max(chainLengthInput, dropDepth + 0.01);
   const suspensionFactor = 1.35 + (windStrength / 40) * 0.65;
-  const suspendedLength = Math.min(chainLength, Math.max(depth + 0.01, depth * suspensionFactor));
+  let suspendedLength = Math.min(
+    chainLength,
+    Math.max(dropDepth + 0.01, dropDepth * suspensionFactor)
+  );
+
+  const minimumBowDepth = 0.01;
+  const anchorDepthAt = (bowDepth: number, laidLength: number) => {
+    const catenary = solveTangentCatenary(suspendedLength, bowDepth, slope);
+    return {
+      catenary,
+      anchorDepth: catenary.vertical + laidLength * Math.sin(slope)
+    };
+  };
+
+  while (suspendedLength > dropDepth + 0.011) {
+    if (anchorDepthAt(minimumBowDepth, 0).anchorDepth <= dropDepth) break;
+    suspendedLength = Math.max(dropDepth + 0.01, suspendedLength * 0.96);
+  }
+
   const onSeabed = Math.max(0, chainLength - suspendedLength);
 
-  const catenary = solveTangentCatenary(suspendedLength, depth, slope);
+  let laidLow = 0;
+  let laidHigh = onSeabed;
+
+  for (let i = 0; i < 48; i++) {
+    const laidLength = (laidLow + laidHigh) / 2;
+    if (anchorDepthAt(minimumBowDepth, laidLength).anchorDepth <= dropDepth) laidLow = laidLength;
+    else laidHigh = laidLength;
+  }
+
+  const laidOnSeabed = laidLow;
+  const piledOnSeabed = onSeabed - laidOnSeabed;
+
+  let bowLow = minimumBowDepth;
+  let bowHigh = dropDepth;
+
+  for (let i = 0; i < 56; i++) {
+    const bowDepth = (bowLow + bowHigh) / 2;
+    if (anchorDepthAt(bowDepth, laidOnSeabed).anchorDepth < dropDepth) bowLow = bowDepth;
+    else bowHigh = bowDepth;
+  }
+
+  const bowDepth = (bowLow + bowHigh) / 2;
+  const { catenary } = anchorDepthAt(bowDepth, laidOnSeabed);
+
   const touchdownDepth = catenary.vertical;
   const horizontalSuspended = catenary.horizontal;
-  const laidHorizontal = onSeabed * Math.cos(slope);
-  const laidVertical = onSeabed * Math.sin(slope);
+  const laidHorizontal = laidOnSeabed * Math.cos(slope);
+  const laidVertical = laidOnSeabed * Math.sin(slope);
 
   return {
     chainLength,
     suspendedLength,
     onSeabed,
+    laidOnSeabed,
+    piledOnSeabed,
+    bowDepth,
     touchdownDepth,
     horizontalSuspended,
     catenaryA: catenary.a,
@@ -72,6 +119,6 @@ export function solveAnchorGeometry(
     laidHorizontal,
     laidVertical,
     totalHorizontal: horizontalSuspended + laidHorizontal,
-    anchorDepth: touchdownDepth + laidVertical
+    anchorDepth: dropDepth
   };
 }

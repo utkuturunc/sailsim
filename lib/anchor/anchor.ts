@@ -221,7 +221,7 @@ function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
     y1: number,
     y2: number,
     label: string,
-    labelSide: 'center' | 'left' = 'center'
+    labelSide: 'center' | 'left' | 'right' = 'center'
   ) {
     ctx.save();
 
@@ -243,8 +243,9 @@ function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
     }
 
     ctx.font = '500 12px Inter, system-ui, sans-serif';
-    ctx.textAlign = labelSide === 'left' ? 'right' : 'center';
-    ctx.fillText(label, labelSide === 'left' ? x - 10 : x, (y1 + y2) / 2 - 8);
+    ctx.textAlign = labelSide === 'left' ? 'right' : labelSide === 'right' ? 'left' : 'center';
+    const labelX = labelSide === 'left' ? x - 10 : labelSide === 'right' ? x + 10 : x;
+    ctx.fillText(label, labelX, (y1 + y2) / 2 - 8);
     ctx.restore();
   }
 
@@ -409,7 +410,7 @@ function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
       geometry.totalHorizontal * baseWorldPxPerM + 150 * baseBoatScale + 70 * baseAnchorScale;
     const sceneHeight =
       geometry.anchorDepth * baseWorldPxPerM + 130 * baseBoatScale + 50 * baseAnchorScale;
-    const sceneTop = 48;
+    const sceneTop = 68;
     const sceneZoom = Math.max(
       0.14,
       Math.min(1, (w - 48) / sceneWidth, (h - sceneTop - 24) / sceneHeight)
@@ -421,8 +422,8 @@ function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
     const anchorBurial = 8 * anchorScale;
     const waterY = sceneTop + 130 * boatScale;
     const anchorX = w - 24 - 36 * anchorScale;
-    const chainLiftX = anchorX - 34 * anchorScale;
-    const touchdownX = chainLiftX - laidHorizontalM * horizontalPxPerM;
+    const anchorEyeX = anchorX - 2 * anchorScale;
+    const touchdownX = anchorEyeX - laidHorizontalM * horizontalPxPerM;
     const targetBowX = touchdownX - horizontalSuspendedM * horizontalPxPerM;
     const targetBoatX = targetBowX - 80 * boatScale;
 
@@ -438,21 +439,20 @@ function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
 
     const bob = reduceMotion ? 0 : Math.sin(time * 0.0015) * (displayWind / 40) * 2.2;
     const bow: Point = { x: boatX + 80 * boatScale, y: waterY - 5 * boatScale + bob };
-    const seabedAtBowY = waterY + displayDepth * horizontalPxPerM;
+    const seabedAtBowY = waterY + geometry.bowDepth * horizontalPxPerM;
     const visualSlope = Math.tan(displaySlope);
     const terrainYAt = (x: number) => seabedAtBowY + (x - targetBowX) * visualSlope;
     const touchdownY = terrainYAt(touchdownX);
-    const chainLiftY = terrainYAt(chainLiftX);
     const anchorSeabedY = terrainYAt(anchorX);
     const anchorEye: Point = {
-      x: anchorX - 2 * anchorScale,
+      x: anchorEyeX,
       y: anchorSeabedY + anchorBurial - 34 * anchorScale
     };
 
     const dropSiteY = terrainYAt(anchorEye.x);
     const dropSiteDepthM = (dropSiteY - waterY) / horizontalPxPerM;
-    const dimensionX = Math.max(38, targetBowX - 20);
-    const dimensionBottom = terrainYAt(dimensionX);
+    const boatSiteY = terrainYAt(bow.x);
+    const boatSiteDepthM = (boatSiteY - waterY) / horizontalPxPerM;
 
     const waterGradient = ctx.createLinearGradient(0, waterY, 0, h);
     waterGradient.addColorStop(0, 'rgba(62,139,155,.18)');
@@ -500,7 +500,7 @@ function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
       distanceY,
       `Horizontal drop distance ${horizontalDistanceM.toFixed(1)} m`
     );
-    drawDimension(dimensionX, waterY, dimensionBottom, `${displayDepth.toFixed(1)} m`);
+    drawDimension(bow.x, waterY, boatSiteY, `${boatSiteDepthM.toFixed(1)} m boat`, 'right');
     drawDimension(anchorEye.x, waterY, dropSiteY, `${dropSiteDepthM.toFixed(1)} m drop`, 'left');
 
     ctx.strokeStyle = css('--chain');
@@ -526,8 +526,8 @@ function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
-    ctx.lineTo(chainLiftX, chainLiftY);
-    ctx.quadraticCurveTo(anchorX - 18 * anchorScale, anchorSeabedY, anchorEye.x, anchorEye.y);
+    ctx.lineTo(anchorEye.x, dropSiteY);
+    ctx.quadraticCurveTo(anchorX - 12 * anchorScale, anchorSeabedY, anchorEye.x, anchorEye.y);
     ctx.stroke();
 
     drawBoat(boatX, waterY, boatScale, bob);
@@ -547,7 +547,7 @@ function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
     get('depthReadingOut').textContent = `${(dropSiteDepthM - BOAT_DRAFT_M).toFixed(1)} m`;
     canvas.setAttribute(
       'aria-label',
-      `Animated side view of a sailboat in ${targetDepth.toFixed(1)} metres of water over ${terrainInput.selectedOptions[0]?.text.toLowerCase() ?? 'flat terrain'}, using ${targetChain.toFixed(0)} metres of chain, with ${targetWind.toFixed(0)} knots of wind from the bow.`
+      `Animated side view of a sailboat with ${targetDepth.toFixed(1)} metres of water at the anchor drop point over ${terrainInput.selectedOptions[0]?.text.toLowerCase() ?? 'flat terrain'}, using ${targetChain.toFixed(0)} metres of chain, with ${targetWind.toFixed(0)} knots of wind from the bow.`
     );
   }
 

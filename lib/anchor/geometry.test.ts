@@ -7,23 +7,30 @@ describe('anchor-chain slope geometry', () => {
       const geometry = solveAnchorGeometry(8, 40, 18, slope);
       expect(geometry.suspendedLength + geometry.onSeabed).toBeCloseTo(40, 8);
       expect(Number.isFinite(geometry.totalHorizontal)).toBe(true);
-      expect(Number.isFinite(geometry.anchorDepth)).toBe(true);
+      expect(geometry.anchorDepth).toBeCloseTo(8, 8);
+      expect(geometry.touchdownDepth + geometry.laidVertical).toBeCloseTo(8, 7);
     }
   });
 
-  test('moves the boat toward the anchor as the same chain climbs a slope', () => {
+  test('holds the requested drop-site depth on every slope', () => {
     const flat = solveAnchorGeometry(8, 40, 18, 0);
     const steep = solveAnchorGeometry(8, 40, 18, Math.PI / 12);
+
+    expect(flat.anchorDepth).toBeCloseTo(8, 8);
+    expect(steep.anchorDepth).toBeCloseTo(8, 8);
     expect(steep.totalHorizontal).toBeLessThan(flat.totalHorizontal);
-    expect(steep.anchorDepth).toBeGreaterThan(flat.anchorDepth);
+    expect(steep.bowDepth).toBeLessThan(steep.anchorDepth);
     expect(steep.chainLength).toBe(flat.chainLength);
   });
 
   test('keeps a 26 metre chain nearly vertical in 25 metres of water', () => {
     const flat = solveAnchorGeometry(25, 26, 18, 0);
     const steep = solveAnchorGeometry(25, 26, 18, Math.PI / 12);
+
+    expect(flat.anchorDepth).toBeCloseTo(25, 8);
+    expect(steep.anchorDepth).toBeCloseTo(25, 8);
     expect(flat.totalHorizontal).toBeLessThan(5);
-    expect(steep.totalHorizontal).toBeLessThan(flat.totalHorizontal);
+    expect(steep.totalHorizontal).toBeLessThan(5);
     expect(steep.suspendedLength).toBeCloseTo(26, 8);
   });
 
@@ -39,7 +46,7 @@ describe('anchor-chain slope geometry', () => {
         geometry.catenaryBowU + (geometry.catenaryTouchU - geometry.catenaryBowU) * fraction;
       const x = geometry.catenaryA * (u - geometry.catenaryBowU);
       const y = geometry.catenaryA * (Math.cosh(geometry.catenaryBowU) - Math.cosh(u));
-      expect(y).toBeLessThanOrEqual(depth + x * terrainTangent + 1e-8);
+      expect(y).toBeLessThanOrEqual(geometry.bowDepth + x * terrainTangent + 1e-8);
     }
 
     expect(-Math.sinh(geometry.catenaryTouchU)).toBeCloseTo(terrainTangent, 8);
