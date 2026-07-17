@@ -21,6 +21,7 @@ if (!result.success) {
 }
 
 await Bun.write(`${dist}/index.html`, Bun.file(`${root}/static/index.html`));
+await Bun.write(`${dist}/assets/favicon.png`, Bun.file(`${root}/static/assets/favicon.png`));
 
 for (const stylesheet of ['index', 'forces', 'anchor']) {
   await Bun.write(
