@@ -36,8 +36,11 @@ const server = Bun.serve({
     const file = Bun.file(filename);
     if (!(await file.exists())) return new Response('Not found', { status: 404 });
 
+    const isFingerprintAsset = /^\/assets\/.+-[a-z0-9]{8,12}\.(?:css|js|png)$/.test(pathname);
     const headers = {
-      'Cache-Control': 'no-store',
+      'Cache-Control': isFingerprintAsset
+        ? 'public, max-age=31536000, immutable'
+        : 'public, max-age=0, must-revalidate',
       'Content-Type': file.type
     };
 
