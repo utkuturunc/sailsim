@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Anchor Chain Visualizer</title>
+    <link rel="stylesheet" href="./css/anchor.css" />
+  </head>
+  <body>
+    <main class="app">
+      <div class="topbar">
+        <a class="brand" href="./index.html">Sailboat Lab</a>
+        <nav class="topnav" aria-label="Main navigation">
+          <a href="./index.html">Home</a>
+          <a href="./forces.html">Forces</a>
+          <a href="./anchor.html" aria-current="page">Anchor chain</a>
+        </nav>
+      </div>
+      <header>
+        <p class="eyebrow">Ground tackle</p>
+        <h1>Anchor chain visualizer</h1>
+      </header>
+      <div class="layout">
+        <section class="panel controls" aria-label="Anchor chain controls">
+          <div class="control">
+            <div class="control-head">
+              <label for="depth">Water depth</label><output id="depthOut">8.0 m</output>
+            </div>
+            <input id="depth" type="range" min="4" max="25" value="8" step="0.5" />
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <label for="chainLength">Chain length</label><output id="chainLengthOut">40 m</output>
+            </div>
+            <input id="chainLength" type="range" min="2" max="80" value="40" step="1" />
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <label for="windStrength">Wind from bow</label
+              ><output id="windStrengthOut">18 kn</output>
+            </div>
+            <input id="windStrength" type="range" min="0" max="40" value="18" step="1" />
+          </div>
+          <div class="control">
+            <div class="control-head"><label for="terrain">Seabed terrain</label></div>
+            <select id="terrain">
+              <option value="flat">Flat</option>
+              <option value="little">Little slope</option>
+              <option value="steep">Steep slope</option>
+            </select>
+          </div>
+          <div class="summary" aria-live="polite">
+            <div class="stat"><span>Scope</span><strong id="scopeOut">5.0 : 1</strong></div>
+            <div class="stat"><span>On seabed</span><strong id="seabedOut">...</strong></div>
+            <div class="stat">
+              <span>Depth Reading (Drop)</span><strong id="depthReadingOut">5.9 m</strong>
+            </div>
+          </div>
+          <p class="depth-note">
+            Scope uses chain length divided by the water depth at the anchor drop point. Depth
+            Reading (Drop) estimates the under-keel reading while the boat is over that point:
+            drop-site depth minus its 2.10 m draft.
+          </p>
+        </section>
+        <section class="panel stage" aria-label="Side view of sailboat, anchor chain, and seabed">
+          <canvas
+            id="anchorScene"
+            role="img"
+            aria-label="A sailboat at the water surface with a curved chain descending to an anchor on the seabed"
+          ></canvas>
+          <div class="legend" aria-hidden="true">
+            <div class="legend-item">
+              <i class="swatch" style="--c: var(--water-line)"></i>Water level
+            </div>
+            <div class="legend-item">
+              <i class="swatch" style="--c: var(--wind)"></i>Wind from bow
+            </div>
+            <div class="legend-item">
+              <i class="swatch" style="--c: var(--chain)"></i>Anchor chain
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="../lib/anchor/anchor.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sailboat Force Lab</title>
+    <link rel="stylesheet" href="./css/forces.css" />
+  </head>
+  <body>
+    <main class="app">
+      <div class="topbar">
+        <a class="brand" href="./index.html">Sailboat Lab</a>
+        <nav class="topnav" aria-label="Main navigation">
+          <a href="./index.html">Home</a>
+          <a href="./forces.html" aria-current="page">Forces</a>
+          <a href="./anchor.html">Anchor chain</a>
+        </nav>
+      </div>
+      <header>
+        <div>
+          <p class="eyebrow">Force lab</p>
+          <h1>Sailboat force visualizer</h1>
+        </div>
+      </header>
+
+      <div class="layout">
+        <section class="panel controls" aria-label="Simulation controls">
+          <div class="direction-controls">
+            <div class="dial-control">
+              <div class="control-head">
+                <label for="windAngle">True wind</label
+                ><output id="windAngleOut">45° starboard</output>
+              </div>
+              <div class="dial-wrap">
+                <input
+                  class="dial-native"
+                  id="windAngle"
+                  type="range"
+                  min="-180"
+                  max="180"
+                  value="45"
+                  step="0.5"
+                />
+                <div class="angle-dial" id="windDial" style="--angle: 45deg" aria-hidden="true">
+                  <span class="dial-pointer"></span><span class="dial-label bow">BOW</span>
+                  <span class="dial-label stbd">+90°</span><span class="dial-label aft">AFT</span
+                  ><span class="dial-label port">−90°</span>
+                </div>
+              </div>
+              <div class="dial-caption" id="noGoCaption">Red no-go zone · ±36.5°</div>
+            </div>
+          </div>
+          <div class="speed-controls">
+            <div class="control">
+              <div class="control-head">
+                <label for="windSpeed">True wind speed</label
+                ><output id="windSpeedOut">14.0 kn</output>
+              </div>
+              <input id="windSpeed" type="range" min="0" max="30" value="14" step="0.5" />
+            </div>
+          </div>
+          <div class="computed-grid" aria-label="Automatic sailing outputs">
+            <div class="computed"><span>Heading</span><strong>0° fixed</strong></div>
+            <div class="computed">
+              <span>Polar boat speed</span><strong id="boatSpeedOut">...</strong>
+            </div>
+            <div class="computed">
+              <span>Sail angle</span><strong id="sailAngleOut">...</strong>
+            </div>
+            <div class="computed"><span>Helm</span><strong id="helmAngleOut">...</strong></div>
+          </div>
+          <details class="boat-config">
+            <summary>Dufour 410 GL reference yacht</summary>
+            <div class="parameter-grid">
+              <div class="parameter"><label>Main + genoa</label><span>78.5 m²</span></div>
+              <div class="parameter"><label>Waterline</label><span>11.15 m</span></div>
+              <div class="parameter"><label>Displacement</label><span>8,940 kg</span></div>
+              <div class="parameter"><label>Keel lateral area*</label><span>3.2 m²</span></div>
+              <div class="parameter"><label>Rudder area*</label><span>0.85 m²</span></div>
+            </div>
+            <p class="hint">
+              Published dimensions and standard sail plan; *foil areas are modeled estimates.
+            </p>
+          </details>
+        </section>
+
+        <div class="visual-column">
+          <section class="panel stage" aria-label="Top-down sailboat force diagram">
+            <canvas
+              id="scene"
+              role="img"
+              aria-label="A top-down sailboat with wind, sail, keel and net force vectors"
+            ></canvas>
+            <div class="legend" aria-hidden="true">
+              <div class="legend-item secondary">
+                <i class="swatch" style="--c: var(--true)"></i>True wind
+              </div>
+              <div class="legend-item secondary">
+                <i class="swatch" style="--c: var(--induced)"></i>Induced wind
+              </div>
+              <div class="legend-item">
+                <i class="swatch" style="--c: var(--apparent)"></i>Apparent wind
+              </div>
+              <div class="legend-item">
+                <i class="swatch" style="--c: var(--sail)"></i>Sail force
+              </div>
+              <div class="legend-item">
+                <i class="swatch" style="--c: var(--keel)"></i>Keel force
+              </div>
+              <div class="legend-item">
+                <i class="swatch" style="--c: var(--rudder)"></i>Rudder force
+              </div>
+              <div class="legend-item">
+                <i class="swatch" style="--c: var(--hull)"></i>Hull resistance
+              </div>
+              <div class="legend-item"><i class="swatch" style="--c: var(--total)"></i>Total</div>
+            </div>
+            <div class="metrics" aria-live="polite">
+              <div class="metric">
+                <span>Apparent wind</span><strong id="apparentMetric">...</strong>
+              </div>
+              <div class="metric"><span>Sail force</span><strong id="sailMetric">...</strong></div>
+              <div class="metric">
+                <span>Polar boat speed</span><strong id="speedMetric">...</strong>
+              </div>
+            </div>
+          </section>
+          <section
+            class="panel force-card"
+            aria-label="Common-origin wind and force vector diagram with upwind guide"
+          >
+            <div class="force-head">
+              <strong>Vector dot diagram</strong
+              ><span>Length shows magnitude · wind scaled separately</span>
+            </div>
+            <canvas
+              id="forceScene"
+              role="img"
+              aria-label="Wind and force vectors sharing a common origin, with the upwind half-plane hatched"
+            ></canvas>
+          </section>
+          <details class="panel debug-card">
+            <summary class="debug-summary">
+              <span class="debug-title"><strong>Debug</strong></span>
+            </summary>
+            <div class="debug-body">
+              <div class="debug-actions">
+                <span class="copy-status" id="copyStatus" role="status" aria-live="polite"></span>
+                <button class="pill-button" id="copyDebug" type="button">Copy</button>
+              </div>
+              <textarea
+                class="debug-output"
+                id="debugOutput"
+                readonly
+                spellcheck="false"
+                aria-label="Diagnostic JSON"
+              ></textarea>
+            </div>
+          </details>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="../lib/forces/forces.ts"></script>
+  </body>
+</html>

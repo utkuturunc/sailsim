@@ -1,6 +1,6 @@
 # Sailboat Force Lab
 
-A zero-dependency, top-down sailboat force visualizer written in TypeScript and bundled with Bun.
+A dependency-free runtime for interactive sailboat visualizers, written in TypeScript and bundled with Bun.
 
 ```sh
 bun run dev
@@ -26,12 +26,16 @@ The reference yacht uses Dufour 410 Grand Large dimensions: 11.15 m waterline, 8
 
 ## Files
 
-- `index.html` — application markup and styling.
-- `app.ts` — typed browser entry point and canvas rendering.
-- `polar-data.ts` — TypeScript module containing the embedded Dufour 41x v2 chart digitized from the Dufour “Designed to Seduce” brochure.
-- `physics.ts` — TypeScript module for polar interpolation, wind math, foil forces, leeway, trim, and scenario solving.
-- `physics.test.ts` — unit and chart-regression tests.
-- `server.ts` — Bun server for the bundled `dist/` output.
+- `static/index.html`, `static/forces.html`, and `static/anchor.html`: page markup and styling.
+- `lib/forces/forces.ts`: force visualizer browser entry point and canvas rendering.
+- `lib/forces/polar-data.ts`: embedded Dufour 41x v2 polar chart data.
+- `lib/forces/physics.ts`: polar interpolation, wind math, foil forces, leeway, trim, and scenario solving.
+- `lib/forces/physics.test.ts`: force model and chart-regression tests.
+- `lib/anchor/anchor.ts`: anchor-chain visualizer browser entry point and canvas rendering.
+- `lib/anchor/geometry.ts`: catenary and sloped-seabed geometry.
+- `lib/anchor/geometry.test.ts`: anchor geometry tests.
+- `lib/tooling/build.ts`: Bun production bundler.
+- `lib/tooling/server.ts`: Bun server for the bundled `dist/` output.
 
 ## Tests
 
