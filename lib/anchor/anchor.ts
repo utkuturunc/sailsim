@@ -327,6 +327,9 @@ function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
     const left = boatCenterX + 105;
     const span = Math.max(80, w - left + 55);
     const count = 3 + Math.round(strength / 14);
+    const windTop = 28;
+    const windBottom = Math.max(windTop + 24, waterY - 30);
+    const verticalSpan = windBottom - windTop;
     const random = (seed: number) => {
       const value = Math.sin(seed * 91.371) * 43758.5453;
       return value - Math.floor(value);
@@ -343,7 +346,7 @@ function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
       const xJitter = (random(i + 2) - 0.5) * spacing * 0.42;
       const yJitter = (random(i + 41) - 0.5) * 15;
       const x = left + ((((i * spacing + xJitter - phase) % span) + span) % span);
-      const y = waterY - 47 - (i % 3) * 27 + yJitter;
+      const y = windTop + ((i + 0.5) / count) * verticalSpan + yJitter;
       const size = 0.8 + (random(i + 83) - 0.5) * 0.06;
       const gustLength = (32 + strength * 0.54) * size;
       const distanceFromBow = x - gustLength - boatBowX;
@@ -421,12 +424,13 @@ function get2DContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
     const boatScale = baseBoatScale * sceneZoom;
     const anchorScale = baseAnchorScale * sceneZoom;
     const anchorBurial = 8 * anchorScale;
-    const waterY = sceneTop + 130 * boatScale;
     const anchorX = w - 24 - 36 * anchorScale;
     const anchorEyeX = anchorX - 2 * anchorScale;
     const touchdownX = anchorEyeX - laidHorizontalM * horizontalPxPerM;
     const targetBowX = touchdownX - horizontalSuspendedM * horizontalPxPerM;
     const targetBoatX = targetBowX - 80 * boatScale;
+    const dropSiteTargetY = h - 56;
+    const waterY = dropSiteTargetY - displayDepth * horizontalPxPerM;
 
     if (!Number.isFinite(boatX)) boatX = targetBoatX;
     if (reduceMotion) {
